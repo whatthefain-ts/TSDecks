@@ -26,7 +26,7 @@
     color-scheme: light;
   }
   html, body { height: 100%; }
-  body { margin: 0; background: var(--ink); color: var(--ink); font-family: var(--body); overflow: hidden;
+  body { margin: 0; background: var(--paper); color: var(--ink); font-family: var(--body); overflow: hidden;
          padding-left: max(0px, env(safe-area-inset-left, 0px)); padding-right: max(0px, env(safe-area-inset-right, 0px)); }
   * { box-sizing: border-box; }
   h1, h2, h3, p { margin: 0; }
@@ -78,7 +78,6 @@
   /* mockups in context */
   .mock { display: grid; grid-template-columns: 1fr 290px 400px; gap: 44px; align-items: start; }
   .mock .yt { max-width: 820px; }
-  .s .mock { margin-top: -16px; }
   .yt { background: #0f0f0f; color: #f1f1f1; border-radius: 18px; padding: 22px; font-family: Roboto, Arial, sans-serif; }
   .yt .player { position: relative; aspect-ratio: 16/9; border-radius: 12px; overflow: hidden; }
   .yt .player .media { position: absolute; inset: 0; }
@@ -191,7 +190,7 @@
   .flag.es { background: linear-gradient(#C60B1E 0 25%, #FFC400 0 75%, #C60B1E 0); }
   .flag.it { background: linear-gradient(90deg, #009246 0 33.3%, #fff 0 66.6%, #CE2B37 0); }
   .flag.pt { background: linear-gradient(90deg, #006600 0 40%, #FF0000 0); }
-  .journey .track { position: relative; height: 14px; background: var(--stone); margin: 150px 0 0; }
+  .journey .track { position: relative; height: 14px; background: var(--stone); }
   .journey .fill { position: absolute; left: 0; top: 0; bottom: 0; width: 100%; background: var(--mark); transform-origin: left; }
   .s.on.journey .fill { animation: grow 2.2s cubic-bezier(.3, .6, .2, 1) .4s backwards; }
   @keyframes grow { from { transform: scaleX(0); } }
@@ -225,13 +224,31 @@
   .ring span { font-size: 27px; line-height: 1.4; color: var(--muted); max-width: 420px; }
   .ringnote { margin-top: 48px; text-align: center; }
   .cta { display: inline-flex; align-self: flex-start; padding: 26px 56px; font-size: 34px; font-weight: 700; background: var(--mark); color: var(--paper); }
+  /* layout pass (Oct 18): heading at the top, content block centered in the space below, bigger working text */
+  .s:has(> .head) { display: flex; flex-direction: column; }
+  .s > .head { margin-bottom: 48px; }
+  .s > .head + * { margin-top: auto; }
+  .s:has(> .head) > :last-child { margin-bottom: auto; }
+  .journey .track { margin-top: auto; }
+  .journey .stops { margin-bottom: auto; }
+  .journey .when { font-size: 28px; }
+  .journey .what { font-size: 60px; }
+  .journey .note { font-size: 29px; }
+  .need { padding: 46px 0; }
+  .need .t { font-size: 66px; }
+  .need .t small { font-size: 31px; margin-top: 14px; }
+  .make b { font-size: 36px; } .make span { font-size: 28px; }
+  .step .what { font-size: 56px; }
+  .mock { grid-template-columns: 700px 260px 380px; justify-content: space-between; }
+  .mock .yt { max-width: 700px; }
+  .s:has(.mock) > .head { margin-bottom: 32px; }
   /* ResMed theme, from resmed.com and @resmed reels (Oct 18, 2026): deep navy #091E42, bright blue #006DFF,
      magenta #9D1676 / #BC299B and violet #7957FF; soft lavender waves. Their social: real people, street interviews,
      bold white condensed caps captions and magenta pill words ("Bulky"). Oswald + Figtree stand in. */
   .s { background: linear-gradient(180deg, #FFFFFF 0%, #F1F0FF 100%); }
-  .big { font-size: 132px; line-height: 1; text-transform: uppercase; }
-  .title { font-size: 92px; text-transform: uppercase; }
-  :is(.big, .title) em { font-style: normal; color: #fff; background: var(--mark); padding: 0 18px; border-radius: 999px; box-decoration-break: clone; -webkit-box-decoration-break: clone; }
+  .big { font-size: 128px; line-height: 1.16; text-transform: uppercase; }
+  .title { font-size: 88px; line-height: 1.16; text-transform: uppercase; }
+  :is(.big, .title) em { font-style: normal; color: #fff; background: linear-gradient(transparent 9%, var(--mark) 9%, var(--mark) 93%, transparent 93%); padding: 0 .14em; border-radius: .16em; box-decoration-break: clone; -webkit-box-decoration-break: clone; }
   .label { display: inline-block; align-self: flex-start; background: #7957FF; color: #fff; padding: 10px 24px; border-radius: 999px;
            font-size: 22px; letter-spacing: .06em; opacity: 1; }
   .foot.label { background: none; color: var(--muted); padding: 0; display: flex; }
