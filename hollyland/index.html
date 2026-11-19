@@ -1,0 +1,562 @@
+<title>Hollyland × Travel Spree</title>
+<meta name="robots" content="noindex, nofollow">
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Red%20Hat%20Display:wght@400;700&family=Red%20Hat%20Mono:wght@400&display=swap">
+<style>
+  @font-face { font-family: 'Red Hat Display Local'; font-style: normal; font-weight: 400; src: url(fonts/red-hat-display-400.woff2) format('woff2'); }
+  @font-face { font-family: 'Red Hat Display Local'; font-style: normal; font-weight: 700; src: url(fonts/red-hat-display-700.woff2) format('woff2'); }
+  @font-face { font-family: 'Red Hat Mono Local'; font-style: normal; font-weight: 400; src: url(fonts/red-hat-mono-400.woff2) format('woff2'); }
+  /* Layout: a fixed 1920x1080 stage scaled to the window, one idea per slide, straight cuts.
+     The brand's world sets the colors (brands/<slug>.json "look"). Single deliberate look, no theme switch. */
+  :root {
+    --paper: #F7F6F2;
+    --ink: #2C2D33;
+    --stone: #EDECE7;
+    --muted: #717174;
+    --mark: #E2211C;
+    --display: 'Red Hat Display', 'Red Hat Display Local', 'Helvetica Neue', Arial, sans-serif;
+    --body: 'Red Hat Display', 'Red Hat Display Local', 'Helvetica Neue', Arial, sans-serif;
+    --mono: 'Red Hat Mono', 'Red Hat Mono Local', ui-monospace, Menlo, monospace;
+    --dw: 700;       /* display weight for the biggest type */
+    --dw2: 700;     /* display weight for card titles */
+    --dt: -0.03em;       /* display tracking */
+    --lw: 400;       /* label weight */
+    color-scheme: light;
+  }
+  html, body { height: 100%; }
+  body { margin: 0; background: var(--paper); color: var(--ink); font-family: var(--body); overflow: hidden;
+         padding-left: max(0px, env(safe-area-inset-left, 0px)); padding-right: max(0px, env(safe-area-inset-right, 0px)); }
+  * { box-sizing: border-box; }
+  h1, h2, h3, p { margin: 0; }
+  .viewport { position: fixed; inset: 0; display: grid; place-items: center; place-content: center; }
+  .stage { width: 1920px; height: 1080px; position: relative; transform-origin: center; flex: none; }
+  .s { position: absolute; inset: 0; overflow: hidden; background: var(--paper); color: var(--ink); visibility: hidden; padding: 128px 144px; }
+  .s.on { visibility: visible; }
+  .s.dissolve.on { animation: dissolve .2s linear; }
+  @keyframes dissolve { from { opacity: 0; } to { opacity: 1; } }
+  .s.dark { background: var(--ink); color: var(--paper); }
+  .s.accent { background: var(--mark); color: var(--paper); }
+  .accent .muted { color: var(--paper); opacity: .8; }
+
+  .label { font-family: var(--mono); font-size: 22px; font-weight: var(--lw); letter-spacing: .14em; text-transform: uppercase; }
+  .muted { color: var(--muted); }
+  .dark .muted { color: var(--stone); opacity: .75; }
+  .big { font-family: var(--display); font-weight: var(--dw); font-size: 150px; line-height: .96; letter-spacing: var(--dt); text-wrap: balance; }
+  .title { font-family: var(--display); font-weight: var(--dw); font-size: 96px; line-height: 1; letter-spacing: var(--dt); text-wrap: balance; }
+  .sub { font-size: 44px; font-weight: 500; line-height: 1.3; letter-spacing: -.01em; }
+  .body { font-size: 30px; font-weight: 500; line-height: 1.45; }
+
+  /* moving media: a clip when one exists, otherwise a slow push on the still */
+  .media { position: relative; overflow: hidden; background: var(--stone); }
+  .media img, .media video { width: 100%; height: 100%; object-fit: cover; object-position: var(--focus, 50% 40%); display: block; }
+  .media img { animation: push 14s ease-in-out infinite alternate; transform-origin: var(--focus, 50% 40%); }
+  @keyframes push { from { transform: scale(1); } to { transform: scale(1.09); } }
+  .media .tag { position: absolute; left: 20px; bottom: 16px; font-family: var(--mono); font-size: 18px; letter-spacing: .1em; text-transform: uppercase; color: #fff; text-shadow: 0 1px 6px rgba(0,0,0,.5); }
+
+  /* address / line / quote */
+  .center-left { display: flex; flex-direction: column; justify-content: center; gap: 48px; }
+  .foot { position: absolute; left: 144px; right: 144px; bottom: 64px; display: flex; justify-content: space-between; }
+  .quote { font-family: var(--display); font-weight: var(--dw2); font-size: 104px; line-height: 1.05; letter-spacing: var(--dt); text-wrap: balance; max-width: 1560px; }
+  .quote::before { content: "\201C"; } .quote::after { content: "\201D"; }
+
+  /* opener: full-bleed media, title over it */
+  .opener { padding: 0; }
+  .opener .media { position: absolute; inset: 0; }
+  .opener .shade { position: absolute; inset: 0; background: linear-gradient(90deg, rgba(20,20,20,.86) 0%, rgba(20,20,20,.55) 46%, rgba(20,20,20,0) 78%); }
+  .opener .copy { position: absolute; left: 144px; bottom: 144px; width: 1180px; color: #fff; display: flex; flex-direction: column; gap: 36px; }
+
+  /* beats */
+  .head { display: flex; flex-direction: column; gap: 20px; margin-bottom: 56px; }
+  .beats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 40px; }
+  .beat { display: flex; flex-direction: column; gap: 22px; }
+  .beat .media { height: 420px; }
+  .beat h3 { font-family: var(--display); font-weight: var(--dw2); font-size: 44px; letter-spacing: var(--dt); }
+  .beat p { font-size: 28px; line-height: 1.45; font-weight: 500; }
+
+  /* mockups in context */
+  .mock { display: grid; grid-template-columns: 1fr 290px 400px; gap: 44px; align-items: start; }
+  .mock .yt { max-width: 820px; }
+  .yt { background: #0f0f0f; color: #f1f1f1; border-radius: 18px; padding: 22px; font-family: Roboto, Arial, sans-serif; }
+  .yt .player { position: relative; aspect-ratio: 16/9; border-radius: 12px; overflow: hidden; }
+  .yt .player .media { position: absolute; inset: 0; }
+  .yt .bar { position: absolute; left: 14px; right: 14px; bottom: 14px; height: 6px; background: rgba(255,255,255,.3); border-radius: 3px; }
+  .yt .seg { position: absolute; top: -3px; height: 12px; background: var(--paper); border-radius: 3px; }
+  .yt .seg span { position: absolute; bottom: 20px; left: 0; white-space: nowrap; font-family: var(--mono); font-size: 18px; color: #fff; background: rgba(0,0,0,.7); padding: 4px 10px; border-radius: 4px; }
+  .yt .played { position: absolute; left: 0; top: 0; bottom: 0; background: #ff0033; border-radius: 3px; animation: play 16s linear infinite; }
+  @keyframes play { from { width: 0; } to { width: 100%; } }
+  .yt h3 { font-size: 28px; font-weight: 700; line-height: 1.25; margin: 20px 4px 10px; }
+  .yt .ch { font-size: 22px; color: #aaa; margin: 0 4px 16px; }
+  .yt .desc { background: #272727; border-radius: 12px; padding: 16px 18px; font-size: 22px; line-height: 1.45; }
+  .phone { background: #0f0f0f; border-radius: 40px; padding: 14px; }
+  .phone .media { aspect-ratio: 9/16; border-radius: 28px; }
+  .phone .cap { position: absolute; left: 18px; right: 18px; bottom: 26px; color: #fff; font-size: 22px; font-weight: 700; line-height: 1.3; text-shadow: 0 1px 8px rgba(0,0,0,.6); }
+  .mail { background: #fff; border: 1px solid var(--stone); border-radius: 18px; padding: 28px; display: flex; flex-direction: column; gap: 12px; }
+  .mail .from { font-size: 22px; font-weight: 700; }
+  .mail .subj { font-size: 26px; font-weight: 700; line-height: 1.3; }
+  .mail .pre { font-size: 22px; line-height: 1.45; color: var(--muted); }
+  .mail .media { height: 230px; border-radius: 10px; margin-top: 8px; }
+  .cap-under { font-family: var(--mono); font-size: 20px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); margin-top: 18px; }
+
+  /* timeline */
+  .steps { display: grid; grid-template-columns: repeat(3, 1fr); border-top: 4px solid currentColor; margin-top: 24px; }
+  .step { padding: 40px 48px 0 0; display: flex; flex-direction: column; gap: 16px; }
+  .step .when { font-family: var(--mono); font-size: 24px; font-weight: 500; letter-spacing: .06em; text-transform: uppercase; }
+  .step .what { font-family: var(--display); font-weight: var(--dw2); font-size: 52px; line-height: 1.05; letter-spacing: var(--dt); }
+  .make { display: grid; grid-template-columns: repeat(var(--n, 3), 1fr); gap: 32px; margin-top: 96px; }
+  .make div { display: flex; flex-direction: column; gap: 10px; }
+  .make b { font-family: var(--display); font-weight: var(--dw2); font-size: 34px; letter-spacing: var(--dt); }
+  .make span { font-size: 26px; line-height: 1.4; font-weight: 500; }
+
+  /* needs */
+  .needs { display: flex; flex-direction: column; margin-top: 16px; }
+  .need { display: grid; grid-template-columns: 120px 1fr; align-items: baseline; padding: 34px 0; border-top: 2px solid var(--stone); }
+  .need:last-child { border-bottom: 2px solid var(--stone); }
+  .need .n { font-family: var(--mono); font-size: 28px; }
+  .need .t { font-family: var(--display); font-weight: var(--dw2); font-size: 60px; letter-spacing: var(--dt); line-height: 1.05; }
+  .need .t small { display: block; font-family: var(--body); font-weight: 500; font-size: 28px; letter-spacing: 0; color: var(--muted); margin-top: 12px; }
+
+  /* credit */
+  .credit { display: grid; grid-template-columns: 1fr 720px; gap: 96px; align-items: center; height: 100%; }
+  .people { display: flex; flex-direction: column; gap: 44px; }
+  .person h3 { font-family: var(--display); font-weight: var(--dw); font-size: 72px; letter-spacing: var(--dt); }
+  .person p { font-size: 30px; line-height: 1.4; font-weight: 500; margin-top: 8px; }
+  .nums { display: flex; gap: 40px; flex-wrap: wrap; padding-top: 36px; border-top: 2px solid currentColor; }
+  .nums div { font-size: 24px; line-height: 1.3; }
+  .nums b { display: block; font-family: var(--display); font-weight: var(--dw); font-size: 48px; letter-spacing: var(--dt); }
+  .proof .media { aspect-ratio: 16/9; border-radius: 12px; }
+  .proof p { font-size: 24px; line-height: 1.4; margin-top: 18px; }
+
+  /* close */
+  .contacts { display: flex; gap: 96px; }
+  .contacts div { display: flex; flex-direction: column; gap: 10px; font-size: 34px; font-weight: 600; }
+  .contacts a { color: inherit; text-underline-offset: 6px; }
+
+  /* nav chrome (screen only) */
+  .chrome { position: fixed; left: 0; right: 0; bottom: 0; display: flex; justify-content: space-between; align-items: center;
+            padding: 12px max(16px, env(safe-area-inset-right, 0px)) calc(12px + env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px));
+            font-family: var(--mono); font-size: 13px; letter-spacing: .1em; color: #bbb; pointer-events: none; }
+  .chrome button { pointer-events: auto; background: rgba(0,0,0,.35); color: #eee; border: 1px solid rgba(255,255,255,.25); border-radius: 999px; width: 40px; height: 40px; font: inherit; font-size: 16px; cursor: pointer; }
+  .chrome button:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
+  .chrome .btns { display: flex; gap: 8px; }
+
+  /* slight build-in on every slide: label, then headline, then support, then cards one by one */
+  @keyframes rise { from { opacity: 0; transform: translateY(26px); } to { opacity: 1; transform: none; } }
+  .s.on :is(.label, .big, .title, .quote, .sub, .body, .beat, .mock > div, .step, .make > div, .need, .brief .row, .person, .nums, .proof, .contacts, .opener .copy > *) {
+    animation: rise .6s cubic-bezier(.2, .7, .2, 1) backwards; animation-delay: var(--d, 0ms);
+  }
+  .s.on :is(.big, .title, .quote) { --d: 90ms; }
+  .s.on :is(.sub, .body, .nums, .contacts) { --d: 240ms; }
+  .s.on .foot .label { animation: none; }
+  .s.on :is(.chips, .box > *, .stop, .cta) { animation: rise .6s cubic-bezier(.2, .7, .2, 1) backwards; animation-delay: var(--d, 0ms); }
+  .s.on :is(.spec, .ring) { animation: rise .6s cubic-bezier(.2, .7, .2, 1) backwards; }
+  .s.on :is(.spec, .ring):nth-child(2) { animation-delay: 150ms; } .s.on :is(.spec, .ring):nth-child(3) { animation-delay: 300ms; } .s.on .spec:nth-child(4) { animation-delay: 450ms; }
+  .s.on :is(.chips, .cta) { --d: 380ms; }
+  .s.on .box > :nth-child(2) { --d: 120ms; } .s.on .box > :nth-child(3) { --d: 260ms; }
+  .s.on .stop:nth-child(1) { --d: 500ms; } .s.on .stop:nth-child(2) { --d: 1200ms; } .s.on .stop:nth-child(3) { --d: 1900ms; }
+  .s.on :is(.beat, .mock > div, .step, .make > div, .need, .person):nth-child(1) { --d: 260ms; }
+  .s.on :is(.beat, .mock > div, .step, .make > div, .need, .person):nth-child(2) { --d: 380ms; }
+  .s.on :is(.beat, .mock > div, .step, .make > div, .need, .person):nth-child(3) { --d: 500ms; }
+  .s.on :is(.beat, .mock > div, .step, .make > div, .need, .person):nth-child(4) { --d: 620ms; }
+  .s.on .make > div { --d: 760ms; }
+  .s.on .proof { --d: 400ms; }
+  @media (prefers-reduced-motion: reduce) {
+    .media img, .yt .played, .s.dissolve.on, .s.on * { animation: none !important; }
+  }
+  @media print {
+    @page { size: 1920px 1080px; margin: 0; }
+    html, body { height: auto; overflow: visible; background: none; }
+    .viewport { position: static; display: block; }
+    .stage { transform: none !important; width: auto; height: auto; }
+    .s { position: relative; visibility: visible; width: 1920px; height: 1080px; break-after: page; }
+    .s:last-child { break-after: auto; }
+    .chrome { display: none; }
+    .media img, .yt .played, .s * { animation: none !important; }
+    .journey .fill { transform: none; }
+    .yt .played { width: 38%; }
+  }
+
+  /* shared pieces some themes use */
+  .caption { padding: 0; }
+  .caption .media { position: absolute; inset: 0; }
+  .caption .box { position: absolute; left: 144px; bottom: 144px; max-width: 1240px; display: flex; flex-direction: column; align-items: flex-start; gap: 20px; }
+  .chips { display: flex; gap: 20px; flex-wrap: wrap; }
+  .chip { display: inline-flex; align-items: center; gap: 14px; padding: 14px 28px 14px 16px; font-size: 32px; font-weight: 700; background: var(--stone); }
+  .flag { width: 40px; height: 40px; border-radius: 50%; flex: none; }
+  .flag.de { background: linear-gradient(#151515 0 33.3%, #DD0000 0 66.6%, #FFCE00 0); }
+  .flag.fr { background: linear-gradient(90deg, #002395 0 33.3%, #fff 0 66.6%, #ED2939 0); }
+  .flag.at { background: linear-gradient(#C8102E 0 33.3%, #fff 0 66.6%, #C8102E 0); }
+  .flag.es { background: linear-gradient(#C60B1E 0 25%, #FFC400 0 75%, #C60B1E 0); }
+  .flag.it { background: linear-gradient(90deg, #009246 0 33.3%, #fff 0 66.6%, #CE2B37 0); }
+  .flag.hu { background: linear-gradient(#CE2939 0 33.3%, #fff 0 66.6%, #477050 0); }
+  .flag.pt { background: linear-gradient(90deg, #006600 0 40%, #FF0000 0); }
+  .journey .track { position: relative; height: 14px; background: var(--stone); }
+  .journey .fill { position: absolute; left: 0; top: 0; bottom: 0; width: 100%; background: var(--mark); transform-origin: left; }
+  .s.on.journey .fill { animation: grow 2.2s cubic-bezier(.3, .6, .2, 1) .4s backwards; }
+  @keyframes grow { from { transform: scaleX(0); } }
+  .journey .stops { position: relative; display: grid; grid-template-columns: repeat(var(--n), 1fr); margin-top: -34px; }
+  .journey .stop { display: flex; flex-direction: column; gap: 14px; padding-right: 40px; }
+  .journey .dot { width: 54px; height: 54px; border-radius: 50%; background: var(--paper); border: 8px solid var(--mark); }
+  .journey .when { font-size: 26px; font-weight: 700; margin-top: 18px; }
+  .journey .what { font-family: var(--display); font-weight: var(--dw2); font-size: 50px; line-height: 1.08; letter-spacing: var(--dt); }
+  .journey .note { font-size: 26px; line-height: 1.4; color: var(--muted); }
+  .split { padding: 0; display: grid; grid-template-columns: 1fr 1fr; }
+  .split .half { padding: 128px 96px 128px 144px; }
+  .split > .media { height: 1080px; }
+  .lesson { position: absolute; left: 24px; bottom: 24px; right: 24px; display: flex; flex-direction: column; gap: 6px; padding: 20px 24px; color: #151515; }
+  .lesson span { font-size: 20px; font-weight: 600; }
+  .lesson b { font-family: var(--display); font-weight: var(--dw2); font-size: 36px; line-height: 1.1; }
+  .s.on .lesson { animation: rise .6s cubic-bezier(.2, .7, .2, 1) backwards; animation-delay: 900ms; }
+  .specs .grid { display: grid; grid-template-columns: repeat(var(--n), 1fr); gap: 48px; margin-top: 40px; }
+  .spec { display: flex; flex-direction: column; gap: 14px; }
+  .spec .num { font-family: var(--display); font-weight: var(--dw); font-size: 180px; line-height: .9; letter-spacing: var(--dt); color: var(--mark); }
+  .spec b { font-size: 36px; font-weight: 700; }
+  .spec span { font-size: 27px; line-height: 1.4; color: var(--muted); }
+  .rings .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 64px; margin-top: 40px; text-align: center; }
+  .ring { display: flex; flex-direction: column; align-items: center; gap: 14px; }
+  .ring svg { width: 300px; height: 300px; transform: rotate(-90deg); }
+  .ring circle { fill: none; stroke-width: 9; }
+  .ring .track { stroke: var(--stone); }
+  .ring .arc { stroke: var(--mark); stroke-linecap: round; stroke-dasharray: 327; stroke-dashoffset: calc(327 - 327 * var(--p) / 100); }
+  .s.on .ring .arc { animation: ring 2s cubic-bezier(.3, .6, .2, 1) .5s backwards; }
+  @keyframes ring { from { stroke-dashoffset: 327; } }
+  .ring b { font-family: var(--display); font-weight: var(--dw2); font-size: 50px; }
+  .ring span { font-size: 27px; line-height: 1.4; color: var(--muted); max-width: 420px; }
+  .ringnote { margin-top: 48px; text-align: center; }
+  .cta { display: inline-flex; align-self: flex-start; padding: 26px 56px; font-size: 34px; font-weight: 700; background: var(--mark); color: var(--paper); }
+  /* layout pass (Oct 18): heading at the top, content block centered in the space below, bigger working text */
+  .s:has(> .head) { display: flex; flex-direction: column; }
+  .s > .head { margin-bottom: 48px; }
+  .s > .head + * { margin-top: auto; }
+  .s:has(> .head) > :last-child { margin-bottom: auto; }
+  .journey .track { margin-top: auto; }
+  .journey .stops { margin-bottom: auto; }
+  .journey .when { font-size: 28px; }
+  .journey .what { font-size: 60px; }
+  .journey .note { font-size: 29px; }
+  .need { padding: 46px 0; }
+  .need .t { font-size: 66px; }
+  .need .t small { font-size: 31px; margin-top: 14px; }
+  .make b { font-size: 36px; } .make span { font-size: 28px; }
+  .step .what { font-size: 56px; }
+  .mock { grid-template-columns: 700px 260px 380px; justify-content: space-between; }
+  .mock .yt { max-width: 700px; }
+  .s:has(.mock) > .head { margin-bottom: 32px; }
+
+  /* Phone portrait (Iris, Nov 17 2026; Fain's yes to the phone fix, Oct 30). Only for themes that set --portrait: 1
+     (older decks are untouched). The script swaps the 1920x1080 stage for a 1080-wide stage as tall as the phone,
+     and these rules stack each slide type top to bottom with phone-size type. Themes add their own body.pt tweaks. */
+  body.pt .s { padding: 136px 72px 160px; }
+  body.pt .label { font-size: 30px; }
+  body.pt .big { font-size: 112px; }
+  body.pt .title { font-size: 88px; }
+  body.pt .sub { font-size: 44px; }
+  body.pt .body { font-size: 38px; }
+  body.pt .foot { left: 72px; right: 72px; bottom: 224px; }
+  body.pt .center-left { justify-content: center; }
+  body.pt .split { display: flex; flex-direction: column; }
+  body.pt .split > .media { order: -1; height: 46%; flex: none; margin: 0; }
+  body.pt .split .half { flex: 1; padding: 72px 72px 160px; justify-content: center; }
+  body.pt .caption .box { left: 72px; right: 72px; bottom: 200px; max-width: none; }
+  body.pt .versus { display: flex; flex-direction: column; }
+  body.pt .versus .side { flex: 1; }
+  body.pt .s:has(> .head) { justify-content: center; }
+  body.pt .beats { grid-template-columns: 1fr; gap: 48px; }
+  body.pt .beat { display: grid; grid-template-columns: 360px 1fr; column-gap: 40px; align-items: center; }
+  body.pt .beat .media { grid-row: span 2; height: 300px; margin: 0; }
+  body.pt .beat h3 { font-size: 48px; align-self: end; }
+  body.pt .beat p { font-size: 34px; align-self: start; }
+  body.pt .mock { grid-template-columns: 1fr 1fr; gap: 48px; }
+  body.pt .mock > div:first-child { grid-column: span 2; }
+  body.pt .mock .yt { max-width: none; }
+  body.pt .steps { grid-template-columns: 1fr; border-top: 0; border-left: 4px solid currentColor; }
+  body.pt .step { padding: 0 0 48px 48px; }
+  body.pt .step .when { font-size: 30px; }
+  body.pt .step .what { font-size: 56px; }
+  body.pt .make { grid-template-columns: 1fr; gap: 32px; margin-top: 48px; }
+  body.pt .make b { font-size: 40px; } body.pt .make span { font-size: 34px; }
+  body.pt .need { grid-template-columns: 112px 1fr; padding: 48px 0; }
+  body.pt .need .t { font-size: 56px; }
+  body.pt .need .t small { font-size: 34px; }
+  body.pt .contacts { flex-direction: column; gap: 40px; }
+  body.pt .contacts div { font-size: 38px; }
+  body.pt .chips { gap: 16px; }
+  /* Hollyland (Iris, Nov 19, 2026). Hollyland's own palette and devices, set to DESIGN.md rules 1 to 8 (Going's system only).
+     Tokens (hollyland.com home + /product/lark-m2s CSS, read Nov 19):
+       canvas #F7F6F2 (their #F5F5F5 / #EFEFF2 greys, warmed), tone step #EDECE7, sheet #FBFAF7
+       ink #2C2D33 (their #2C2D33 / #2F3132 near-black; never pure black), muted #717174 (their #717174), hairline 1px rgba(44,45,51,.14)
+       accent #E2211C (their one red): the 2 to 5 accent words of a headline, OR the one CTA pill. One job per slide.
+       radius: 24px (photo stages, panels), 12px (chips, inner frames), 999px (pills). Nothing else.
+       shadow: none. Depth from the dark stage behind each photo, hairlines and tone steps.
+       spacing: 8px base. Scale 8 / 16 / 24 / 32 / 48 / 64 / 80. Section gap 80px.
+       weights: Red Hat Display 400 + 700 (closest free face to their HarmonyOS Sans); Red Hat Mono 400 for receiver-style labels
+       tracking: display -0.03em (tight); labels +0.12em caps in mono
+       devices: concentric sound rings radiating from a mic dot (their "Capture the sounds of the world" APEC key art and the
+         ripple rings around the LARK M2S on the product page); every photo sits on a dark product stage like their
+         product-on-black pages; a two-channel receiver tag riding each photo (dark pill, live level bars, "CH1 / CH2"), like the
+         receiver display and the two-voice reels on @hollylandtech ("my favorite co-star showed up").
+       one photo rule: Hollyland's own warm product and creator shots, 24px stage corners, cover crop, faces kept whole,
+         copy only on canvas or a card, never on the photo. */
+  :root { --portrait: 1; --tone: #EDECE7; --sheet: #FBFAF7; --hair: rgba(44, 45, 51, .14); --acc: #E2211C; --stage: #2C2D33;
+          --g1: 8px; --g2: 16px; --g3: 24px; --g4: 32px; --g6: 48px; --g8: 64px; --g10: 80px; --r1: 24px; --r2: 12px; --r3: 999px; }
+
+  .s.accent, .s.dark { background: var(--paper); color: var(--ink); }
+  em { font-style: normal; }
+  :is(.big, .title) em { color: var(--acc); }
+  .s:has(.cta) :is(.big, .title) em { color: inherit; }
+
+  .label { font-family: var(--mono); font-weight: 400; font-size: 20px; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); opacity: 1; }
+  .foot, .foot .label { font-size: 16px; }
+  .big { font-size: 128px; line-height: 1.02; font-weight: 700; letter-spacing: -0.03em; }
+  .title { font-size: 84px; line-height: 1.06; font-weight: 700; letter-spacing: -0.03em; }
+  .sub { font-weight: 400; font-size: 36px; line-height: 1.45; letter-spacing: -0.005em; text-wrap: pretty; }
+  .body { font-weight: 400; font-size: 28px; line-height: 1.5; }
+  :is(.beat p, .make span, .need .t small, .pre, .versus .sub) { text-wrap: pretty; }
+  .muted, .accent .muted, .dark .muted { color: var(--muted); opacity: 1; }
+  .center-left { gap: var(--g6); }
+  .center-left .big { max-width: 1120px; }
+  .center-left .sub { max-width: 1000px; }
+
+  /* every photo on a dark product stage */
+  .media { border-radius: var(--r1); background: var(--stage); }
+
+  /* sound rings: concentric circles radiating from a mic dot, at the right of every text slide */
+  .s.center-left::before { content: ""; position: absolute; right: 120px; top: 50%; width: 640px; height: 640px; margin-top: -320px; border-radius: 50%;
+    background: radial-gradient(circle, var(--ink) 0 14px, transparent 15px),
+                repeating-radial-gradient(circle, transparent 0 62px, var(--hair) 62px 64px);
+    -webkit-mask: radial-gradient(circle, #000 0 40%, transparent 71%); mask: radial-gradient(circle, #000 0 40%, transparent 71%); }
+  .s.center-left::after { content: ""; position: absolute; right: 440px; top: 50%; width: 0; height: 0; border-radius: 50%; border: 2px solid var(--ink); opacity: 0; transform: translate(50%, -50%); }
+  .s.on.center-left::after { animation: ripple 2.8s cubic-bezier(.2, .6, .3, 1) .4s infinite; }
+  @keyframes ripple { 0% { width: 28px; height: 28px; opacity: .5; } 100% { width: 620px; height: 620px; opacity: 0; } }
+  .s:has(.cta)::before, .s:has(.cta)::after { display: none; }
+
+  /* the receiver tag: a dark pill with live two-channel level bars, riding the top-left of a photo */
+  .media .tag { left: var(--g3); top: var(--g3); bottom: auto; display: inline-flex; align-items: center; gap: 14px; padding: 12px 20px 12px 16px;
+    border-radius: var(--r3); background: var(--stage); color: var(--sheet); text-shadow: none;
+    font-family: var(--mono); font-weight: 400; font-size: 18px; letter-spacing: .1em; text-transform: uppercase; z-index: 2; }
+  .media .tag::before { content: ""; width: 22px; height: 18px; flex: none;
+    background: linear-gradient(var(--sheet), var(--sheet)) 0 100% / 4px 60% no-repeat, linear-gradient(var(--sheet), var(--sheet)) 9px 100% / 4px 100% no-repeat,
+                linear-gradient(var(--sheet), var(--sheet)) 18px 100% / 4px 40% no-repeat; }
+  .s.on .media .tag::before { animation: lvl 1.1s steps(4) infinite alternate; }
+  @keyframes lvl {
+    0% { background-size: 4px 60%, 4px 100%, 4px 40%; } 33% { background-size: 4px 30%, 4px 70%, 4px 90%; }
+    66% { background-size: 4px 90%, 4px 45%, 4px 60%; } 100% { background-size: 4px 50%, 4px 85%, 4px 30%; } }
+
+  /* hero: the greeting at left on canvas, the mics on a tall stage at right */
+  .caption.hero { background: var(--paper); }
+  .caption.hero .media { inset: var(--g8) var(--g8) var(--g8) auto; width: 960px; }
+  .caption.hero .box { left: 144px; top: 0; bottom: 0; max-width: 700px; justify-content: center; gap: var(--g4); }
+  .caption.hero .box .big { font-size: 140px; color: var(--ink); }
+  .caption.hero .box .sub { color: var(--muted); font-size: 32px; }
+
+  /* split lines: copy at left, photo stage at right; channel chips under the copy */
+  .split { grid-template-columns: 1fr 880px; align-items: center; }
+  .split .half { position: static; display: flex; flex-direction: column; justify-content: center; gap: var(--g4); padding: 128px 96px 128px 144px; background: transparent; color: var(--ink); }
+  .split > .media { height: auto; align-self: stretch; margin: var(--g8) var(--g8) var(--g8) 0; }
+  .split .big { font-size: 92px; line-height: 1.06; }
+  .split .half .sub { font-size: 32px; line-height: 1.45; }
+  .split .chips { gap: var(--g2); margin-top: var(--g1); }
+  .chip { gap: 12px; padding: 12px 22px 12px 14px; border-radius: var(--r3); background: var(--sheet) !important; border: 1px solid var(--hair);
+          font-family: var(--mono); font-weight: 400; font-size: 20px; letter-spacing: .1em; text-transform: uppercase; color: var(--ink); }
+  .flag { width: 32px; height: 32px; border-radius: var(--r3); background: var(--stage); color: var(--sheet); display: grid; place-items: center; font-size: 15px; letter-spacing: 0; }
+  .flag.ch1::after { content: "1"; } .flag.ch2::after { content: "2"; }
+  .s.on .chips { animation: none; }
+  .s.on .chips .chip { animation: rise .6s cubic-bezier(.2, .7, .2, 1) backwards; }
+  .s.on .chips .chip:nth-child(1) { animation-delay: 500ms; } .s.on .chips .chip:nth-child(2) { animation-delay: 620ms; } .s.on .chips .chip:nth-child(3) { animation-delay: 740ms; }
+
+  /* versus: a tone panel against the photo; the photo side's caption sits on a sheet card */
+  .versus { padding: var(--g8); display: grid; grid-template-columns: 1fr 1fr; gap: var(--g4); }
+  .versus .side { position: relative; border-radius: var(--r1); overflow: hidden; background: var(--tone); }
+  .versus .side .media { position: absolute; inset: 0; border-radius: 0; }
+  .versus .vcap { position: absolute; display: flex; flex-direction: column; align-items: flex-start; gap: var(--g2); z-index: 2; }
+  .versus .side:not(.photo) .vcap { top: 50%; transform: translateY(-50%); left: 96px; right: 96px; }
+  .versus .side.photo .vcap { left: var(--g4); right: var(--g4); bottom: var(--g4); background: var(--sheet); border-radius: var(--r2); padding: var(--g4) var(--g6) var(--g4) var(--g4); }
+  .versus .title { font-size: 72px; }
+  .versus .side.photo .title { font-size: 48px; }
+  .versus .sub { font-size: 30px; color: var(--muted); }
+  .versus .vs { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); width: 88px; height: 88px; border-radius: var(--r3); background: var(--paper);
+                display: grid; place-items: center; font-family: var(--mono); font-size: 22px; letter-spacing: .08em; color: var(--ink); border: 1px solid var(--hair); z-index: 3; }
+
+  /* heading + content slides: one 80px section gap, the whole stack centered */
+  .head { gap: var(--g3); margin-bottom: 0; }
+  .s:has(> .head) { display: flex; flex-direction: column; justify-content: center; gap: var(--g10); }
+  .s > .head { margin-bottom: 0; }
+  .s > .head + * { margin-top: 0; }
+  .s:has(> .head) > :last-child { margin-bottom: 0; }
+  .s:has(.mock) > .head { margin-bottom: 0; }
+
+  /* beats: photo stages with a mono timecode above each title */
+  .beats { gap: var(--g6); }
+  .beat { gap: var(--g2); }
+  .beat .media { height: 420px; margin-bottom: var(--g2); }
+  .beat .tagline { font-family: var(--mono); font-size: 18px; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
+  .beat h3 { font-family: var(--display); font-weight: 700; font-size: 42px; letter-spacing: -0.03em; color: var(--ink); }
+  .beat p { font-size: 27px; line-height: 1.45; font-weight: 400; color: var(--muted); }
+
+  /* plan */
+  .steps { border-top: 2px solid var(--ink); margin-top: 0; }
+  .step { padding: var(--g4) var(--g6) 0 0; gap: var(--g2); }
+  .step .when { font-family: var(--mono); font-weight: 400; font-size: 20px; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
+  .step .what { font-weight: 700; font-size: 50px; letter-spacing: -0.03em; line-height: 1.1; }
+  .make { gap: 0; margin-top: 0; }
+  .make div { gap: var(--g1); padding-right: var(--g6); }
+  .make b { font-family: var(--display); font-weight: 700; font-size: 30px; letter-spacing: -0.02em; }
+  .make span { font-weight: 400; font-size: 26px; color: var(--muted); }
+  .s p.body[style] { margin-top: 0 !important; }
+
+  /* needs: channel numbers on dark receiver keys */
+  .needs { margin-top: 0; }
+  .need { align-items: center; padding: var(--g4) 0; border-top: 1px solid var(--hair); grid-template-columns: 136px 1fr; }
+  .need:last-child { border-bottom: 1px solid var(--hair); }
+  .need .n { width: 80px; height: 80px; border-radius: var(--r2); background: var(--stage); color: var(--sheet); display: grid; place-items: center; font-family: var(--mono); font-size: 24px; }
+  .need .t { font-weight: 700; font-size: 52px; letter-spacing: -0.03em; line-height: 1.12; }
+  .need .t small { font-weight: 400; font-size: 27px; margin-top: var(--g2); letter-spacing: 0; }
+
+  /* mockups */
+  .mock { grid-template-columns: 700px 264px 384px; gap: var(--g6); justify-content: space-between; }
+  .yt { background: var(--sheet); color: var(--ink); border: 1px solid var(--hair); border-radius: var(--r1); padding: var(--g3); font-family: var(--body); }
+  .yt .player { border-radius: var(--r2); }
+  .yt .bar { left: 16px; right: 16px; bottom: 16px; height: 8px; background: rgba(255, 255, 255, .5); border-radius: var(--r3); }
+  .yt .played { background: #FBFAF7; border-radius: var(--r3); }
+  .yt .seg { top: -4px; height: 16px; background: var(--acc); border-radius: var(--r3); }
+  .yt .seg span { bottom: 24px; font-family: var(--mono); font-size: 16px; letter-spacing: .06em; color: var(--sheet); background: var(--stage); padding: 8px 16px; border-radius: var(--r3); }
+  .yt h3 { font-family: var(--display); font-weight: 700; font-size: 28px; line-height: 1.25; letter-spacing: -0.02em; margin: var(--g3) 0 var(--g1); }
+  .yt .ch { font-size: 22px; font-weight: 400; color: var(--muted); margin: 0 0 var(--g2); }
+  .yt .desc { background: var(--paper); border-radius: var(--r2); padding: var(--g2) var(--g3); font-size: 22px; font-weight: 400; line-height: 1.45; color: var(--ink); }
+  .yt .desc b { font-weight: 700; }
+  .phone { background: var(--stage); border-radius: var(--r1); padding: var(--g1); }
+  .phone .media { border-radius: var(--r2); }
+  .phone .cap { left: 16px; right: 16px; top: 24px; bottom: auto; text-align: center; font-family: var(--body); font-weight: 700; font-size: 20px; line-height: 1.3; color: var(--ink); text-shadow: none;
+                background: var(--sheet); border-radius: var(--r2); padding: 12px 14px; }
+  .mail { background: var(--sheet); border: 1px solid var(--hair); border-radius: var(--r1); padding: var(--g4); gap: var(--g2); }
+  .mail .from { font-family: var(--mono); font-weight: 400; font-size: 16px; letter-spacing: .06em; color: var(--muted); }
+  .mail .subj { font-family: var(--display); font-weight: 700; font-size: 28px; line-height: 1.25; letter-spacing: -0.02em; }
+  .mail .pre { font-size: 22px; font-weight: 400; }
+  .mail .media { height: 232px; border-radius: var(--r2); margin-top: var(--g1); }
+  .cap-under { font-family: var(--mono); font-weight: 400; font-size: 18px; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); margin-top: var(--g3); }
+
+  /* close: the red pill is the slide's one accent */
+  .cta { border-radius: var(--r3); background: var(--acc); color: var(--sheet); font-family: var(--body); font-weight: 700; font-size: 30px; letter-spacing: 0; padding: var(--g3) var(--g6); }
+  .contacts { gap: var(--g10); margin-top: var(--g2) !important; }
+  .contacts div { font-weight: 400; font-size: 34px; gap: var(--g2); }
+  .contacts .label { font-size: 18px; }
+
+  /* phone portrait */
+  body.pt .s.center-left::before { right: 50%; margin-right: -260px; top: 136px; margin-top: 0; width: 520px; height: 520px; opacity: .8; }
+  body.pt .s.center-left::after { right: 50%; top: 396px; }
+  body.pt .s.center-left { justify-content: center; padding-top: 640px; padding-bottom: 320px; }
+  body.pt .center-left .big { max-width: none; }
+  body.pt .caption.hero .media { inset: 72px 72px auto 72px; width: auto; height: 52%; }
+  body.pt .caption.hero .box { left: 72px; right: 72px; top: auto; bottom: 200px; max-width: none; justify-content: flex-end; }
+  body.pt .caption.hero .box .big { font-size: 144px; }
+  body.pt .caption.hero .box .sub { font-size: 40px; }
+  body.pt .split > .media { margin: 72px 72px 0; height: 44%; }
+  body.pt .split .big { font-size: 92px; }
+  body.pt .split .half .sub { font-size: 40px; }
+  body.pt .chip { font-size: 26px; padding: 14px 24px 14px 16px; }
+  body.pt .versus { padding: 72px 72px 208px; gap: 32px; }
+  body.pt .versus .side:not(.photo) .vcap { left: 64px; right: 64px; }
+  body.pt .versus .title { font-size: 72px; }
+  body.pt .versus .side.photo .title { font-size: 52px; }
+  body.pt .versus .sub, body.pt .versus .side.photo .sub { font-size: 34px; }
+  body.pt .versus .vs { width: 96px; height: 96px; }
+  body.pt .s:has(> .head) { gap: 64px; }
+  body.pt .beat .tagline { display: none; }
+  body.pt .mock { grid-template-columns: 1fr 1fr; gap: 40px; }
+  body.pt .yt h3 { font-size: 36px; } body.pt .yt .ch { font-size: 28px; } body.pt .yt .desc { font-size: 28px; }
+  body.pt .yt .seg span { font-size: 22px; }
+  body.pt .phone .cap { font-size: 26px; }
+  body.pt .mail .from { font-size: 18px; letter-spacing: 0; white-space: nowrap; } body.pt .mail .subj { font-size: 34px; } body.pt .mail .pre { font-size: 28px; }
+  body.pt .mail .media { height: 200px; }
+  body.pt .cap-under { font-size: 24px; }
+  body.pt .steps { border-left: 2px solid var(--ink); }
+  body.pt .step .when { font-size: 28px; }
+  body.pt .step .what { font-size: 54px; }
+  body.pt .need .n { width: 80px; height: 80px; font-size: 28px; }
+  body.pt .need .t { font-size: 54px; }
+  body.pt .need .t small { font-size: 34px; }
+  body.pt .cta { font-size: 38px; }
+  body.pt .contacts div { font-size: 38px; } body.pt .contacts .label { font-size: 26px; }
+
+
+  /* brief: Atlas's strategist brief, key/value rows in two columns with a verdict chip */
+  .brief .rows { display: grid; grid-template-columns: 1fr 1fr; gap: 30px 80px; }
+  .brief .row { border-top: 2px solid var(--stone); padding-top: 22px; display: flex; flex-direction: column; gap: 10px; }
+  .brief .v { font-size: 29px; line-height: 1.4; font-weight: 500; }
+  .verdict { display: inline-block; vertical-align: middle; font-family: var(--mono); font-weight: 600; font-size: 24px; letter-spacing: .12em; text-transform: uppercase;
+             padding: 10px 22px; margin-left: 20px; border-radius: 999px; background: var(--mark); color: #fff; }
+  .verdict.maybe { background: var(--ink); } .verdict.skip { background: var(--muted); }
+</style>
+
+<div class="viewport"><div class="stage" id="stage">
+<section class="s hero caption"><div class="media" style="--focus:58% 62%"><img src="img/hollyland/kit.jpg" alt="A pair of Hollyland wireless mics beside their charging case"><div class="tag">CH1 · CH2 ready</div></div><div class="box"><div class="label">From Fain &amp; Laura at Travel Spree</div><h2 class="big">Hi, <em>Hollyland.</em></h2><p class="sub">We have an idea for our cruise this winter, and it starts with the wind.</p></div></section>
+<section class="s center-left"><h2 class="big">The wind on a top deck <em>eats our best lines.</em></h2><p class="sub muted">We talk to camera all day on a cruise. Up top, by the rail, the wind usually wins.</p><div class="foot label muted"><span>Hollyland × Travel Spree</span><span>November 2026</span></div></section>
+<section class="s split"><div class="half center-left"><h2 class="big">This January we sail <em>with Oceania.</em></h2><p class="sub muted">Two Hollyland mics, one on each of us, from the first sail-away to the last dinner. The episodes go live in March 2027.</p><div class="chips"><span class="chip" style="background:"><span class="flag ch1"></span>Fain</span><span class="chip" style="background:"><span class="flag ch2"></span>Laura</span></div></div><div class="media" style="--focus:80% 58%"><img src="img/hollyland/a-kit.jpg" alt="A Hollyland mic kit with two transmitters and a receiver"><div class="tag">2 voices</div></div></section>
+<section class="s dissolve versus"><div class="side"><div class="vcap"><div class="label">Usually</div><h2 class="title">One mic for two people.</h2><p class="sub">Someone is always a step too far away to hear.</p></div></div><div class="side photo"><div class="media" style="--focus:55% 30%"><img src="img/hollyland/couple.jpg" alt="Two creators filming themselves outdoors, each wearing a clip-on mic"></div><div class="vcap"><div class="label">This trip</div><h2 class="title">Both of us, every word</h2></div></div><div class="vs">vs.</div></section>
+<section class="s"><div class="head"><div class="label muted">How it comes to life</div><h2 class="title">Two episodes. <em>Every word.</em></h2></div><div class="beats"><div class="beat" style="--card:transparent"><div class="media" style="--focus:55% 45%"><img src="img/hollyland/clip.jpg" alt="A mic being clipped to a shirt collar"><div class="tag">CH1</div></div><div class="tagline">Episode 1</div><h3>Sail-away, up top</h3><p>We clip on at sail-away and talk you through the top deck, wind and all.</p></div><div class="beat" style="--card:transparent"><div class="media" style="--focus:52% 35%"><img src="img/hollyland/selfie.jpg" alt="A creator filming himself outdoors with a clip-on mic"><div class="tag">CH2</div></div><div class="tagline">Episode 1</div><h3>A busy port</h3><p>Crowds, traffic, music in the square, and you still hear both of us.</p></div><div class="beat" style="--card:transparent"><div class="media" style="--focus:55% 30%"><img src="img/hollyland/couple.jpg" alt="Two creators filming together, both wearing clip-on mics"><div class="tag">CH1 + CH2</div></div><div class="tagline">Episode 2</div><h3>A quiet dinner</h3><p>The two of us at dinner, plus a quick tip on how we record our trips.</p></div></div></section>
+<section class="s"><div class="head"><div class="label muted">Where it lives</div><h2 class="title">Part of <em>the trip.</em></h2></div><div class="mock"><div><div class="yt"><div class="player"><div class="media" style="--focus:40% 40%"><img src="img/explora-frame-1.jpg" alt="Fain and Laura on a cruise ship"></div><div class="bar"><div class="played"></div><div class="seg" style="left:10%;width:9%"><span>Sail-away · Hollyland</span></div></div></div><h3>Oceania: Every Word on a Windy Deck</h3><div class="ch">Travel Spree</div><div class="desc">The mics we filmed this trip with: <b>[your link]</b></div></div><div class="cap-under">Episode</div></div><div><div class="phone"><div class="media" style="--focus:56% 50%"><img src="img/hollyland/clip.jpg" alt=""><div class="cap">can you hear us over this wind?</div></div></div><div class="cap-under">YouTube Short</div></div><div><div class="mail"><div class="from">Postcards From Travel Spree</div><div class="subj">How we record on a windy deck</div><div class="pre">The two little mics behind our Oceania episodes, and the one tip we'd give anyone filming a trip.</div><div class="media" style="--focus:58% 62%"><img src="img/hollyland/kit.jpg" alt=""></div></div><div class="cap-under">Newsletter</div></div></div></section>
+<section class="s"><div class="head"><div class="label muted">The plan</div><h2 class="title">One cruise. <em>Two episodes.</em></h2></div><div class="steps"><div class="step"><div class="when">By Jan 20, 2027</div><div class="what">Mics in Orlando</div></div><div class="step"><div class="when">Jan 27 to Feb 5, 2027</div><div class="what">Oceania</div></div><div class="step"><div class="when">Mar 13 and Mar 20, 2027</div><div class="what">Episodes go live</div></div></div><div class="make"><div><b>2 of the 4 episodes</b><span>A segment of 60 seconds or more in each, with your link in the description.</span></div><div><b>1 YouTube Short</b><span>Both of us on the top deck, over the wind.</span></div><div><b>1 newsletter feature</b><span>In Postcards From Travel Spree, our weekly email.</span></div></div><p class="body muted" style="margin-top:56px">To pack them before we sail, we'd need a yes by early January 2027.</p></section>
+<section class="s"><div class="head"><div class="label muted">What we need from you</div><h2 class="title"><em>Three things.</em></h2></div><div class="needs"><div class="need"><div class="n">01</div><div class="t">A pair of Hollyland mics<small>Whichever set you'd like us to use, in Orlando by January 20, 2027.</small></div></div><div class="need"><div class="n">02</div><div class="t">Your talking points<small>Anything you want said, and anything you don't.</small></div></div><div class="need"><div class="n">03</div><div class="t">A link or code for our viewers<small>So you can see exactly what the episodes drive.</small></div></div></div></section>
+<section class="s center-left"><h2 class="big">Want to hear <em>the wind lose?</em></h2><p class="sub muted">If the idea fits, we'd love to talk. If it isn't quite right, we're happy to shape it around what works for you.</p><div class="cta">Let's talk</div><div class="contacts" style="margin-top:40px"><div><span class="label muted">Email</span>Fainandlo@gmail.com</div><div><span class="label muted">YouTube</span><a href="https://www.youtube.com/@travelspreeofficial">youtube.com/@travelspreeofficial</a></div></div><div class="foot label muted"><span>Hollyland × Travel Spree</span><span>November 2026</span></div></section>
+</div></div>
+
+<div class="chrome"><span id="count">01 / 01</span><span class="btns"><button id="prev" aria-label="Previous slide">&larr;</button><button id="next" aria-label="Next slide">&rarr;</button></span></div>
+
+<script>
+(function () {
+  var stage = document.getElementById('stage');
+  var slides = Array.prototype.slice.call(stage.querySelectorAll('.s'));
+  var count = document.getElementById('count');
+  var i = 0;
+  function pad(n) { return (n < 10 ? '0' : '') + n; }
+  // phone portrait: only when the theme opts in with --portrait: 1 (older decks keep the 16:9 stage)
+  var portrait = getComputedStyle(document.documentElement).getPropertyValue('--portrait').trim() === '1';
+  function fit() {
+    var w = window.innerWidth, h = window.innerHeight;
+    if (portrait && h > w * 1.15) {
+      document.body.classList.add('pt');
+      stage.style.width = '1080px';
+      var H = Math.max(1600, Math.round(1080 * h / w));
+      stage.style.height = H + 'px';
+      stage.style.transform = 'scale(' + Math.min(w / 1080, h / H) + ')';
+      return;
+    }
+    document.body.classList.remove('pt');
+    stage.style.width = ''; stage.style.height = '';
+    var k = Math.min(w / 1920, h / 1080);
+    stage.style.transform = 'scale(' + k + ')';
+  }
+  function show(n) {
+    i = Math.max(0, Math.min(slides.length - 1, n));
+    slides.forEach(function (s, j) {
+      var on = j === i;
+      s.classList.toggle('on', on);
+      s.querySelectorAll('video').forEach(function (v) { try { on ? v.play() : v.pause(); } catch (e) {} });
+    });
+    count.textContent = pad(i + 1) + ' / ' + pad(slides.length);
+    try { history.replaceState(null, '', '#s' + (i + 1)); } catch (e) {}
+  }
+  document.getElementById('next').onclick = function () { show(i + 1); };
+  document.getElementById('prev').onclick = function () { show(i - 1); };
+  document.addEventListener('keydown', function (e) {
+    if (['ArrowRight', 'PageDown', ' ', 'Enter'].indexOf(e.key) > -1) { e.preventDefault(); show(i + 1); }
+    if (['ArrowLeft', 'PageUp', 'Backspace'].indexOf(e.key) > -1) { e.preventDefault(); show(i - 1); }
+    if (e.key === 'Home') show(0);
+    if (e.key === 'End') show(slides.length - 1);
+  });
+  stage.addEventListener('click', function (e) {
+    if (e.target.closest('a')) return;
+    show(e.clientX > window.innerWidth / 2 ? i + 1 : i - 1);
+  });
+  var x0 = null;
+  document.addEventListener('touchstart', function (e) { x0 = e.touches[0].clientX; }, { passive: true });
+  document.addEventListener('touchend', function (e) {
+    if (x0 === null) return;
+    var dx = e.changedTouches[0].clientX - x0; x0 = null;
+    if (Math.abs(dx) > 40) show(dx < 0 ? i + 1 : i - 1);
+  });
+  window.addEventListener('resize', fit);
+  fit();
+  var m = /^#s(\d+)$/.exec(location.hash);
+  show(m ? parseInt(m[1], 10) - 1 : 0);
+})();
+</script>
